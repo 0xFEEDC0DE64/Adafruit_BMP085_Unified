@@ -41,6 +41,8 @@
 #include <limits.h>
 #include <math.h>
 
+#include <espchrono.h>
+
 #include "Adafruit_BMP085_U.h"
 
 static bmp085_calib_data
@@ -253,9 +255,10 @@ Adafruit_BMP085_Unified::Adafruit_BMP085_Unified(int32_t sensorID) {
     @brief  Setups the HW
 */
 /**************************************************************************/
-bool Adafruit_BMP085_Unified::begin(bmp085_mode_t mode) {
+bool Adafruit_BMP085_Unified::begin(bool skipWireBegin, bmp085_mode_t mode) {
   // Enable I2C
-  Wire.begin();
+  if (!skipWireBegin)
+      Wire.begin();
 
   /* Mode boundary check */
   if ((mode > BMP085_MODE_ULTRAHIGHRES) || (mode < 0)) {
@@ -440,20 +443,21 @@ float Adafruit_BMP085_Unified::seaLevelForAltitude(float altitude,
     @brief  Provides the sensor_t data for this sensor
 */
 /**************************************************************************/
-void Adafruit_BMP085_Unified::getSensor(sensor_t *sensor) {
-  /* Clear the sensor_t object */
-  memset(sensor, 0, sizeof(sensor_t));
+sensor_t Adafruit_BMP085_Unified::getSensor() {
+  sensor_t sensor;
 
   /* Insert the sensor name in the fixed length char array */
-  strncpy(sensor->name, "BMP085", sizeof(sensor->name) - 1);
-  sensor->name[sizeof(sensor->name) - 1] = 0;
-  sensor->version = 1;
-  sensor->sensor_id = _sensorID;
-  sensor->type = SENSOR_TYPE_PRESSURE;
-  sensor->min_delay = 0;
-  sensor->max_value = 1100.0F; // 300..1100 hPa
-  sensor->min_value = 300.0F;
-  sensor->resolution = 0.01F; // Datasheet states 0.01 hPa resolution
+  strncpy(sensor.name, "BMP085", sizeof(sensor.name) - 1);
+  sensor.name[sizeof(sensor.name) - 1] = 0;
+
+  sensor.version = 1;
+  sensor.sensor_id = _sensorID;
+  sensor.type = SENSOR_TYPE_PRESSURE;
+  sensor.min_delay = 0;
+  sensor.max_value = 1100.0F; // 300..1100 hPa
+  sensor.min_value = 300.0F;
+  sensor.resolution = 0.01F; // Datasheet states 0.01 hPa resolution
+  return sensor;
 }
 
 /**************************************************************************/
@@ -461,18 +465,19 @@ void Adafruit_BMP085_Unified::getSensor(sensor_t *sensor) {
     @brief  Reads the sensor and returns the data as a sensors_event_t
 */
 /**************************************************************************/
-bool Adafruit_BMP085_Unified::getEvent(sensors_event_t *event) {
-  float pressure_kPa;
+std::optional<sensors_event_t> Adafruit_BMP085_Unified::getEvent() {
+  sensors_event_t event;
 
-  /* Clear the event */
-  memset(event, 0, sizeof(sensors_event_t));
+  event.version = sizeof(sensors_event_t);
+  event.sensor_id = _sensorID;
+  event.type = SENSOR_TYPE_PRESSURE;
+  event.timestamp = espchrono::millis_clock::now();
 
-  event->version = sizeof(sensors_event_t);
-  event->sensor_id = _sensorID;
-  event->type = SENSOR_TYPE_PRESSURE;
-  event->timestamp = 0;
-  getPressure(&pressure_kPa);
-  event->pressure = pressure_kPa / 100.0F;
+  {
+      float pressure_kPa;
+      getPressure(&pressure_kPa);
+      event.pressure = pressure_kPa / 100.0F;
+  }
 
-  return true;
+  return event;
 }

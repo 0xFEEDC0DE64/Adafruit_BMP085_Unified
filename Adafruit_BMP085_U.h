@@ -93,7 +93,7 @@ public:
    * @param mode Mode to set, ultra high-res by default
    * @return Returns true if successful
    */
-  bool begin(bmp085_mode_t mode = BMP085_MODE_ULTRAHIGHRES);
+  bool begin(bool skipWireBegin = false, bmp085_mode_t mode = BMP085_MODE_ULTRAHIGHRES);
   /*!
    * @brief Gets the temperature over I2C from the BMP085
    * @param temp Temperature
@@ -143,8 +143,8 @@ public:
    * @brief Used to read the sensor
    * @return Returns an event
    */
-  bool getEvent(sensors_event_t *);
-  void getSensor(sensor_t *);
+  std::optional<sensors_event_t> getEvent() override;
+  sensor_t getSensor() override;
 
 private:
   int32_t computeB5(int32_t ut);
