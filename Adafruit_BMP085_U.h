@@ -99,13 +99,23 @@ public:
    * @param temp Temperature
    * @return Returns the temperature
    */
-  void getTemperature(float *temp);
+  std::optional<float> getTemperature();
+
+  float getTemperature(int32_t UT);
+
   /*!
    * @brief Gets the pressure over I2C from the BMP085
    * @param pressure Pressure
    * @return Returns the pressure
    */
-  void getPressure(float *pressure);
+  std::optional<float> getPressure();
+
+  float getPressure(int32_t ut, int32_t up);
+
+  struct TemperatureAndPressure { float temperature, pressure; };
+
+  std::optional<TemperatureAndPressure> getTemperatureAndPressure();
+
   /*!
    * @brief Calculates absolute pressure
    * @param seaLevel Pressure at sea level
