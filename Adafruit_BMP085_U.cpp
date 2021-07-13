@@ -101,8 +101,9 @@ static bool read8(byte reg, uint8_t *value) {
   if (const auto result = Wire.endTransmission(); result != I2C_ERROR_OK) { DBGPRNT("fail %hhu", result); succ = false; }
 
   if (const auto result = Wire.requestFrom((uint8_t)BMP085_ADDRESS, (byte)1); result != 1) { DBGPRNT("fail %hhu", result); succ = false; }
+
   if (const auto result = WIRE_READ(); result == -1) { DBGPRNT("fail %i", result); succ = false; }
-  else *value = result;
+  else if (succ) *value = result;
 
   //if (const auto result = Wire.endTransmission(); result != I2C_ERROR_OK) { DBGPRNT("fail %hhu", result); succ = false; }
   Wire.endTransmission();
@@ -127,7 +128,8 @@ static bool read16(byte reg, uint16_t *value) {
   const auto result1 = WIRE_READ();
   if (result0 == -1) { DBGPRNT("fail %i", result0); succ = false; }
   else if (result1 == -1) { DBGPRNT("fail %i", result1); succ = false; }
-  else { *value = (result0 << 8) | result1; }
+
+  if (succ) { *value = (result0 << 8) | result1; }
 
   //if (const auto result = Wire.endTransmission(); result != I2C_ERROR_OK) { DBGPRNT("fail %hhu", result); succ = false; }
   Wire.endTransmission();
@@ -144,7 +146,7 @@ static bool readS16(byte reg, int16_t *value) {
   bool succ{true};
   uint16_t i;
   if (!read16(reg, &i)) { DBGPRNT("fail"); succ = false; }
-  else *value = (int16_t)i;
+  if (succ) *value = (int16_t)i;
   return succ;
 }
 
@@ -267,19 +269,6 @@ int32_t Adafruit_BMP085_Unified::computeB5(int32_t ut) {
   int32_t X2 =
       ((int32_t)_bmp085_coeffs.mc << 11) / (X1 + (int32_t)_bmp085_coeffs.md);
   return X1 + X2;
-}
-
-/***************************************************************************
- CONSTRUCTOR
- ***************************************************************************/
-
-/**************************************************************************/
-/*!
-    @brief  Instantiates a new Adafruit_BMP085_Unified class
-*/
-/**************************************************************************/
-Adafruit_BMP085_Unified::Adafruit_BMP085_Unified(int32_t sensorID) {
-  _sensorID = sensorID;
 }
 
 /***************************************************************************

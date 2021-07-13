@@ -85,8 +85,8 @@ typedef struct {
  */
 class Adafruit_BMP085_Unified : public Adafruit_Sensor {
 public:
-  Adafruit_BMP085_Unified(
-      int32_t sensorID = -1); //!< @param sensorID ID of the BMP085 sensor
+  Adafruit_BMP085_Unified(int32_t sensorID = -1) : //!< @param sensorID ID of the BMP085 sensor
+    _sensorID{sensorID} {}
 
   /*!
    * @brief Starts I2C connection
