@@ -50,8 +50,11 @@
 #include <math.h>
 
 #include <espchrono.h>
+#include <tickchrono.h>
 
 #include "Adafruit_BMP085_U.h"
+
+using namespace std::chrono_literals;
 
 static bmp085_calib_data
     _bmp085_coeffs; // Last read accelerometer data will be available here
@@ -197,7 +200,7 @@ static std::optional<int32_t> readRawTemperature() {
 #else
   bool succ{true};
   if (!writeCommand(BMP085_REGISTER_CONTROL, BMP085_REGISTER_READTEMPCMD)) { DBGPRNT("fail"); succ = false; }
-  delay(5);
+  espcpputils::delay(5ms);
   uint16_t t;
   if (!read16(BMP085_REGISTER_TEMPDATA, &t)) { DBGPRNT("fail"); succ = false; }
   if (succ)
@@ -222,17 +225,17 @@ static std::optional<int32_t> readRawPressure() {
                     BMP085_REGISTER_READPRESSURECMD + (_bmp085Mode << 6))) { DBGPRNT("fail"); succ = false; }
   switch (_bmp085Mode) {
   case BMP085_MODE_ULTRALOWPOWER:
-    delay(5);
+    espcpputils::delay(5ms);
     break;
   case BMP085_MODE_STANDARD:
-    delay(8);
+    espcpputils::delay(8ms);
     break;
   case BMP085_MODE_HIGHRES:
-    delay(14);
+    espcpputils::delay(14ms);
     break;
   case BMP085_MODE_ULTRAHIGHRES:
   default:
-    delay(26);
+    espcpputils::delay(26ms);
     break;
   }
 
